@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-23T00:00:00Z",
+  "title": "Design System: OpenTV",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Signal Violet",
+        "tonalRamp": ["#140d33", "#241a5c", "#392a8a", "#523bc2", "#6c46f0", "#7c5cff", "#a78bff", "#d4c6ff"]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Warm Charcoal Ground",
+        "tonalRamp": ["#08080b", "#0e0e14", "#121218", "#1b1b25", "#24242f", "#3c3c4c", "#75757f", "#c4c4cc"]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card",
+        "tonalRamp": ["#0e0e14", "#15151d", "#1f1f2a", "#272733", "#34343f", "#4c4c58", "#7c7c88", "#b6b6c0"]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Text Muted",
+        "tonalRamp": ["#1c1c22", "#333339", "#4c4c55", "#666670", "#8c8c98", "#a5a5b0", "#c6c6cf", "#e8e8ec"]
+      },
+      "warning": {
+        "role": "status",
+        "displayName": "Warning / Connecting",
+        "tonalRamp": ["#3a2400", "#5c3900", "#805000", "#a66900", "#cc8400", "#fbbf24", "#ffce6e", "#ffe9c2"]
+      },
+      "danger": {
+        "role": "status",
+        "displayName": "Danger / Offline",
+        "tonalRamp": ["#330c14", "#591626", "#852038", "#b12a4c", "#dd3560", "#fb7185", "#fda3af", "#fdd0d6"]
+      },
+      "focus": {
+        "role": "utility",
+        "displayName": "Focus Violet",
+        "tonalRamp": ["#140d33", "#241a5c", "#392a8a", "#523bc2", "#6c46f0", "#7c5cff", "#a78bff", "#d4c6ff"]
+      }
+    },
+    "typographyMeta": {
+      "body": {
+        "displayName": "Body / UI (Manrope)",
+        "purpose": "The only typographic voice — headings, body copy, labels, and channel card names. Heavier weights (700-800) stand in for a display face rather than a second font."
+      },
+      "mono": {
+        "displayName": "Mono (IBM Plex Mono)",
+        "purpose": "Narrowed to genuinely monospace-appropriate content only: the playlist URL (profile form and topbar Source stat). No longer used as a technical-flavor voice for IDs, counts, or timestamps."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-rest",
+        "value": "0 10px 24px -12px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.03) inset",
+        "purpose": "Every channel card's resting shadow."
+      },
+      {
+        "name": "card-hover",
+        "value": "0 18px 36px -14px rgba(0, 0, 0, 0.65), 0 0 0 1px color-mix(in srgb, var(--color-accent) 45%, transparent), 0 0 22px -4px var(--color-accent-glow)",
+        "purpose": "The signature hover/select treatment on channel cards — offset+blur drop shadow layered with an accent-tinted ring and glow."
+      },
+      {
+        "name": "panel-lift",
+        "value": "0 16px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.02)",
+        "purpose": "The welcome-screen form panel and channel-list panel's resting lift."
+      },
+      {
+        "name": "player-frame",
+        "value": "0 22px 50px -16px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.03)",
+        "purpose": "The video player's resting shadow — larger than a card's since it is the dominant element."
+      }
+    ],
+    "motion": [
+      {
+        "name": "channel-card-hover",
+        "value": "220ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "The system's one authored signature moment: a lift (translateY(-4px) scale(1.015)) plus an accent-tinted glow appearing on hover/focus. Transform is disabled under prefers-reduced-motion, leaving only the shadow/border-color transition."
+      },
+      {
+        "name": "card-select-pulse",
+        "value": "260ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "One-shot scale-settle when a channel card or the player frame becomes active/selected. Disabled under prefers-reduced-motion."
+      },
+      {
+        "name": "status-pulse",
+        "value": "1.1-1.6s ease-in-out infinite",
+        "purpose": "Live/connecting status dot breathing pulse. Reduced to a static 0.85 opacity under prefers-reduced-motion."
+      },
+      {
+        "name": "btn-shimmer",
+        "value": "2s ease-in-out infinite",
+        "purpose": "Loading sweep on the primary submit button. Disabled under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "md",
+        "value": "768px",
+        "purpose": "The topbar's Source stat (a full playlist URL) hides below this width as a second line of defense; the topbar's flex-wrap is the primary containment mechanism at any width."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Channel Card",
+      "kind": "custom",
+      "description": "The primary browsable content unit — a rounded card with a soft violet-tinted gradient art area (logo or monogram) above a body carrying the channel name, category, and a status badge.",
+      "html": "<button class=\"ds-card ds-card--active\">\n  <div class=\"ds-card__art\"><span class=\"ds-card__logo\">HL</span></div>\n  <div class=\"ds-card__body\">\n    <span class=\"ds-card__name\">History</span>\n    <div class=\"ds-card__meta-row\">\n      <span class=\"ds-card__category\">Documentary</span>\n      <span class=\"ds-status ds-status--live\"><span class=\"ds-dot\"></span>Live</span>\n    </div>\n  </div>\n</button>",
+      "css": ".ds-card { display: flex; flex-direction: column; width: 168px; background: var(--color-card, #1f1f2a); border: 1px solid var(--color-border, #2b2b38); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 24px -12px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.03) inset; transition: transform 220ms cubic-bezier(0.2,0.8,0.2,1), box-shadow 220ms ease, border-color 220ms ease; } .ds-card:hover { transform: translateY(-4px) scale(1.015); border-color: color-mix(in srgb, var(--color-accent, #7c5cff) 55%, var(--color-border, #2b2b38)); box-shadow: 0 18px 36px -14px rgba(0,0,0,0.65), 0 0 0 1px color-mix(in srgb, var(--color-accent, #7c5cff) 45%, transparent), 0 0 22px -4px rgba(124,92,255,0.35); } .ds-card--active { border-color: var(--color-accent, #7c5cff); box-shadow: 0 0 0 2px var(--color-accent, #7c5cff), 0 18px 36px -14px rgba(0,0,0,0.65); } .ds-card__art { position: relative; aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--color-accent, #7c5cff) 24%, var(--color-card-hover, #272733)) 0%, var(--color-card, #1f1f2a) 72%); } .ds-card__logo { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 22px; color: var(--color-text-secondary, #a7a7b5); } .ds-card__body { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px 12px; border-top: 1px solid var(--color-border, #2b2b38); } .ds-card__name { font-family: 'Manrope', sans-serif; font-weight: 600; font-size: 13px; color: var(--color-text, #f5f5f8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-card__meta-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; } .ds-card__category { font-size: 11px; color: var(--color-text-muted, #8c8c98); } .ds-status { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; } .ds-dot { width: 7px; height: 7px; border-radius: 50%; } .ds-status--live { color: var(--color-accent-text, #a78bff); } .ds-status--live .ds-dot { background: var(--color-accent, #7c5cff); }"
+    },
+    {
+      "name": "Status Badge (connecting)",
+      "kind": "custom",
+      "description": "The dot-plus-label status pattern, reused identically on channel cards and the video player.",
+      "html": "<span class=\"ds-status ds-status--connecting\"><span class=\"ds-dot\"></span>Connecting</span>",
+      "css": ".ds-status { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; } .ds-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; } .ds-status--connecting { color: var(--color-warning, #fbbf24); } .ds-status--connecting .ds-dot { background: var(--color-warning, #fbbf24); animation: ds-pulse 1.1s ease-in-out infinite; } @keyframes ds-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } } @media (prefers-reduced-motion: reduce) { .ds-status--connecting .ds-dot { animation: none; opacity: 0.85; } }"
+    },
+    {
+      "name": "Category Pill",
+      "kind": "nav",
+      "description": "The category-navigation unit in a horizontally-scrollable pill bar. Active pill fills solid with the committed accent; inactive pills sit on the surface color. No per-category color-coding.",
+      "html": "<button class=\"ds-pill ds-pill--active\">Sports</button>",
+      "css": ".ds-pill { padding: 8px 16px; border-radius: 999px; border: 1px solid var(--color-border, #2b2b38); background: var(--color-surface, #1b1b25); color: var(--color-text-secondary, #a7a7b5); font-size: 13px; font-weight: 600; white-space: nowrap; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; } .ds-pill:hover { border-color: var(--color-border-strong, #3c3c4c); color: var(--color-text, #f5f5f8); } .ds-pill--active { background: var(--color-accent-strong, #6c46f0); border-color: var(--color-accent-strong, #6c46f0); color: #ffffff; box-shadow: 0 6px 16px -6px rgba(124,92,255,0.35); } .ds-pill:focus-visible { outline: 2px solid var(--color-focus, #7c5cff); outline-offset: 2px; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The committed accent's solid-fill button — deeper accent-strong shade for AA contrast with white text.",
+      "html": "<button class=\"ds-btn-primary\">Start watching</button>",
+      "css": ".ds-btn-primary { font-family: 'Manrope', sans-serif; font-weight: 700; background: var(--color-accent-strong, #6c46f0); color: #ffffff; border: none; border-radius: 12px; padding: 12px 20px; transition: background 160ms ease, transform 120ms ease; } .ds-btn-primary:hover { background: var(--color-accent, #7c5cff); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-focus, #7c5cff); outline-offset: 2px; } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:disabled { opacity: 0.45; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Utility action — surface fill, uppercase-free label, accent border on hover (danger on the 'Switch profile' variant).",
+      "html": "<button class=\"ds-btn-secondary\">Refresh</button>",
+      "css": ".ds-btn-secondary { background: var(--color-surface, #1b1b25); border: 1px solid var(--color-border-strong, #3c3c4c); color: var(--color-text-secondary, #a7a7b5); border-radius: 10px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; transition: border-color 160ms ease, color 160ms ease; } .ds-btn-secondary:hover { border-color: var(--color-accent, #7c5cff); color: var(--color-text, #f5f5f8); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-focus, #7c5cff); outline-offset: 2px; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "description": "Ink fill, hairline border, focus adds both a border color shift and a soft accent ring.",
+      "html": "<label class=\"ds-field\">\n  <span class=\"ds-field__label\">Playlist URL</span>\n  <input class=\"ds-field__input\" type=\"url\" placeholder=\"https://example.com/playlist.m3u\" />\n</label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; } .ds-field__label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-secondary, #a7a7b5); } .ds-field__input { background: var(--color-bg, #121218); border: 1px solid var(--color-border, #2b2b38); border-radius: 12px; padding: 10px 16px; color: var(--color-text, #f5f5f8); caret-color: var(--color-accent-text, #a78bff); } .ds-field__input::placeholder { color: var(--color-text-muted, #8c8c98); } .ds-field__input:focus-visible { outline: none; border-color: var(--color-accent, #7c5cff); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent, #7c5cff) 16%, transparent); }"
+    },
+    {
+      "name": "Status Banner",
+      "kind": "custom",
+      "description": "Error and notice tones sharing one shape; error uses role=\"alert\"/aria-live=\"assertive\", notice uses role=\"status\"/aria-live=\"polite\".",
+      "html": "<div class=\"ds-banner ds-banner--error\" role=\"alert\">\n  <span>Couldn't load the playlist. Check the URL and try again.</span>\n</div>",
+      "css": ".ds-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; border-radius: 12px; font-size: 13px; } .ds-banner--error { border: 1px solid color-mix(in srgb, var(--color-danger, #fb7185) 40%, transparent); background: color-mix(in srgb, var(--color-danger, #fb7185) 16%, transparent); color: var(--color-danger, #fb7185); } .ds-banner--notice { border: 1px solid color-mix(in srgb, var(--color-accent, #7c5cff) 30%, transparent); background: color-mix(in srgb, var(--color-accent, #7c5cff) 16%, transparent); color: var(--color-accent-text, #a78bff); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Familiar Streaming App",
+    "overview": "OpenTV replaces its prior broadcast-control-room identity (\"MCR Video Wall\" — bezels, tally lights, UMD nameplates, a patch-bay category rail) with the vocabulary every mainstream streaming/IPTV app already speaks: rounded, browsable channel cards on a warm dark ground, a horizontally-scrollable pill bar for category browsing, and one saturated, committed accent color that carries real visual weight instead of hiding in restraint. The structural proportions the previous system got right — a dominant video player above a compact, horizontally-scrolling strip of channel units — are kept unchanged; only the visual language around that structure is new.",
+    "keyCharacteristics": [
+      "Warm charcoal dark ground (#121218), not an ink-cold engineering black — a living-room-at-night surface",
+      "One committed accent, Signal Violet (#7c5cff), carrying real weight: primary buttons, the active category pill, the selected/live channel state, and focus rings — not a decorative sliver",
+      "Rounded channel cards (16px radius) with a soft violet-tinted radial gradient behind each logo, since there is no real poster art to show",
+      "A horizontally-scrollable category pill bar between the topbar and the player — no fixed-width sidebar, so category browsing can never overlap adjacent content at any window width",
+      "Status is always a dot + an uppercase text label together, never color alone"
+    ],
+    "rules": [
+      { "name": "The Committed Accent Rule", "body": "--color-accent (in its strong/text/soft forms) is the one color the interface spends real weight on — buttons, active states, live/selected state, focus. It is allowed to carry real visual weight across the interface, as long as it stays the only competing hue doing so.", "section": "colors" },
+      { "name": "The Dot-Plus-Label Rule", "body": "No status is ever conveyed by a dot color alone — every .status-badge pairs a colored dot with an uppercase text label in the same hue family.", "section": "colors" },
+      { "name": "The One-Voice Rule", "body": "Manrope is the only font making a typographic identity statement. Weight and size carry hierarchy; there is no second display face standing in for brand character.", "section": "typography" }
+    ],
+    "dos": [
+      "Do pair every status indicator with a text label — never rely on dot color alone (The Dot-Plus-Label Rule).",
+      "Do let the committed accent carry real visual weight across buttons, active states, and focus rings.",
+      "Do reach for flex-wrap with min-width: 0 and truncate on any row of variable-width content before a fixed grid or hidden-below-breakpoint pattern.",
+      "Do keep the connecting/offline status hues functional and distinct from the committed accent."
+    ],
+    "donts": [
+      "Don't use a colored border-left/border-right on cards, rows, or alerts (project-wide craft-floor rule).",
+      "Don't reintroduce per-category color-coding — it competes with the committed accent and doesn't scale past a handful of categories.",
+      "Don't use IBM Plex Mono as a technical-flavor voice for anything that isn't genuinely a URL or similarly measured value.",
+      "Don't cap a variable-width content row at a fixed height or fixed-column grid without a wrap/reflow path."
+    ]
+  }
+}
