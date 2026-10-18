@@ -9,7 +9,7 @@ import { DESKTOP_USER_AGENT } from "../../../shared/network/desktopUserAgent";
 // app's own origin as Referer, which those hosts reject with 403. Routing
 // logo fetches through the same @tauri-apps/plugin-http bridge (with the
 // same honest desktop User-Agent — see shared/network/desktopUserAgent.ts)
-// as the HLS loader closes that gap for the same class of provider.
+// as the playback engine (libmpv) uses closes that gap for the same class of provider.
 
 // Resolved blob object URLs, keyed by source logo URL. Module-level so it
 // survives virtualization remounts (react-window unmounts/remounts

@@ -119,10 +119,48 @@ input {
 /* ---------------------------------------------------------------------- */
 
 .app-ground {
-  background:
+  --app-ground-bg:
     radial-gradient(circle at 14% -8%, color-mix(in srgb, var(--color-accent) 8%, transparent), transparent 42%),
     radial-gradient(circle at 86% 0%, color-mix(in srgb, var(--color-accent) 5%, transparent), transparent 40%),
     linear-gradient(180deg, #15151f 0%, #121218 55%, #0e0e14 100%);
+  background: var(--app-ground-bg);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Native video surface                                                    */
+/* mpv paints into the window beneath the transparent WebView. While a     */
+/* stream is active the page becomes transparent and the ground moves to a */
+/* fixed layer with a rectangular hole (--hole-*) over the player area.    */
+/* ---------------------------------------------------------------------- */
+
+html.mpv-surface,
+html.mpv-surface body,
+html.mpv-surface #root {
+  background: transparent;
+}
+
+.app-ground--video {
+  background: transparent;
+  isolation: isolate;
+}
+
+.app-ground--video::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--app-ground-bg);
+  -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+  mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+  -webkit-mask-size: 100% 100%, var(--hole-w, 0px) var(--hole-h, 0px);
+  mask-size: 100% 100%, var(--hole-w, 0px) var(--hole-h, 0px);
+  -webkit-mask-position: 0 0, var(--hole-x, 0px) var(--hole-y, 0px);
+  mask-position: 0 0, var(--hole-x, 0px) var(--hole-y, 0px);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
 
 .app-topbar {
@@ -619,6 +657,87 @@ input {
   background: rgba(10, 10, 14, 0.55);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+}
+
+/* Over the native video the frame must not paint anything of its own, and the
+   hole is square, so the frame drops its rounded corners to avoid slivers.
+   Backdrop blur cannot see mpv pixels, so the chip uses a solid fill. */
+html.mpv-surface .player-frame {
+  background: transparent;
+  border-radius: 0;
+}
+
+html.mpv-surface .player-frame--pulse {
+  animation: none;
+}
+
+html.mpv-surface .player-frame__screen {
+  background: transparent;
+}
+
+/* Fullscreen: the player frame is edge to edge, no border. */
+.app-ground--fullscreen .player-frame {
+  border: 0;
+  box-shadow: none;
+}
+
+/* Transport controls: solid, because blur/alpha cannot blend with mpv pixels. */
+.player-controls {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #0a0a0e;
+  border-top: 1px solid var(--color-border);
+}
+
+/* Only keyboard focus keeps the bar up; a clicked button keeps pointer focus. */
+.player-controls--idle:not(:has(:focus-visible)) {
+  visibility: hidden;
+}
+
+.app-ground--fullscreen:has(.player-controls--idle) .player-frame__screen {
+  cursor: none;
+}
+
+.player-controls__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.player-controls__btn:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-accent);
+}
+
+.player-controls__volume {
+  width: 120px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+html.mpv-surface .status-banner {
+  background: color-mix(in srgb, var(--color-surface) 92%, black);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html.mpv-surface .player-live-chip {
+  background: rgba(10, 10, 14, 0.85);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* ---------------------------------------------------------------------- */
