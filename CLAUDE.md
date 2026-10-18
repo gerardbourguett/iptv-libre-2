@@ -46,7 +46,7 @@ There is no linter configured either — `tsconfig.json` strictness flags (`stri
 - TypeScript/React: 2-space indentation; Rust in `src-tauri/src/`: `rustfmt` defaults (4 spaces)
 - Keep UI in `components/`, parsing in `parser/`, network access in `services/`
 - Do not hardcode IPTV sources, secrets, or local-only paths; keep playlist URLs validated in the playlist service layer (`fetchPlaylist.ts` already validates http/https and content shape — extend there, don't bypass it)
-- Review changes to `src-tauri/capabilities/` and `tauri.conf.json` carefully — they affect desktop permissions (currently `core:default`, `opener:default`, and `http:default` allowing any http/https URL; `security.csp` is `null`).
+- Review changes to `src-tauri/capabilities/` and `tauri.conf.json` carefully — they affect desktop permissions (currently `core:default`, `opener:default`, `http:default` allowing any http/https URL, `libmpv:default`, and `core:window:allow-set-fullscreen`; `security.csp` is `null`).
 - Commit convention: Conventional Commits (`feat:`, `fix:`, etc.)
 
 ## Config notes
