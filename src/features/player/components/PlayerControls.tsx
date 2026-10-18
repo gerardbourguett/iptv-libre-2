@@ -3,6 +3,7 @@ import { useAppStore } from "../../../store";
 import { mpvPlayer } from "../services/mpvPlayer";
 
 const FULLSCREEN_IDLE_HIDE_MS = 3000;
+const UNMUTE_FALLBACK_VOLUME = 50;
 
 const ICON_PATHS = {
   play: "M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z",
@@ -71,7 +72,9 @@ export function PlayerControls() {
     };
   }, [fullscreen]);
 
-  const effectiveVolume = muted ? 0 : Math.round(volume);
+  // Optimistic value while dragging so the thumb does not fight mpv's echo.
+  const [dragVolume, setDragVolume] = useState<number | null>(null);
+  const effectiveVolume = dragVolume ?? (muted ? 0 : Math.round(volume));
 
   return (
     <div
@@ -88,7 +91,11 @@ export function PlayerControls() {
         label={muted ? "Unmute" : "Mute"}
         icon={muted ? "muted" : "volume"}
         pressed={muted}
-        onClick={() => void mpvPlayer.setMuted(!muted)}
+        onClick={() => {
+          // Unmuting at volume 0 would stay silent: restore a sensible level.
+          if (muted && Math.round(volume) === 0) void mpvPlayer.setVolume(UNMUTE_FALLBACK_VOLUME);
+          void mpvPlayer.setMuted(!muted);
+        }}
       />
       <input
         type="range"
@@ -100,9 +107,13 @@ export function PlayerControls() {
         value={effectiveVolume}
         onChange={(event) => {
           const next = Number(event.target.value);
+          setDragVolume(next);
           void mpvPlayer.setVolume(next);
           if (muted && next > 0) void mpvPlayer.setMuted(false);
         }}
+        onPointerUp={() => setDragVolume(null)}
+        onKeyUp={() => setDragVolume(null)}
+        onBlur={() => setDragVolume(null)}
       />
       <span className="flex-1" />
       <ControlButton

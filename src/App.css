@@ -695,8 +695,13 @@ html.mpv-surface .player-frame__screen {
   border-top: 1px solid var(--color-border);
 }
 
-.player-controls--idle:not(:focus-within) {
+/* Only keyboard focus keeps the bar up; a clicked button keeps pointer focus. */
+.player-controls--idle:not(:has(:focus-visible)) {
   visibility: hidden;
+}
+
+.app-ground--fullscreen:has(.player-controls--idle) .player-frame__screen {
+  cursor: none;
 }
 
 .player-controls__btn {
