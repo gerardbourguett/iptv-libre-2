@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# libmpv DLLs (fetched by "pnpm setup:mpv", never committed)
+src-tauri/lib/*
+!src-tauri/lib/.gitkeep

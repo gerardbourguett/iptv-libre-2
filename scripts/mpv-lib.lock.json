@@ -1,0 +1,27 @@
+{
+  "comment": "Pinned libmpv artifacts for Windows x86_64. Archives are verified before extraction, extracted DLLs are verified after. The zhongfly release assets are retained only for a limited time; if the URL 404s, update the pin deliberately (new URL, archive hash, DLL hash).",
+  "archives": [
+    {
+      "name": "mpv-dev-lgpl-x86_64-20261018-git-6a262d11f6.7z",
+      "url": "https://github.com/zhongfly/mpv-winbuild/releases/download/2026-10-18-6a262d11f6/mpv-dev-lgpl-x86_64-20261018-git-6a262d11f6.7z",
+      "sha256": "2e49f64f8a0c58c0a5cbc3c1bc8e4f4b057c2a42ae10b0cc4e84f65c1b442f89",
+      "extract": ["libmpv-2.dll"]
+    },
+    {
+      "name": "libmpv-wrapper-windows-x86_64.zip",
+      "url": "https://github.com/nini22P/libmpv-wrapper/releases/download/v0.1.1/libmpv-wrapper-windows-x86_64.zip",
+      "sha256": "d2ff8b2edcd34d2968e544adaa915e5e5c48eb1a0995945005269c2af119a492",
+      "extract": ["libmpv-wrapper.dll"]
+    }
+  ],
+  "files": {
+    "libmpv-2.dll": {
+      "sha256": "3a7f0ba529621ffffedeb33b8149cd9c2c9df43f920a1e966cc191472518be57",
+      "size": 101306880
+    },
+    "libmpv-wrapper.dll": {
+      "sha256": "0d5adead5f175c55e0790a80924ec0a2636f72e3675c79a6d9d9568b2ed2384a",
+      "size": 391680
+    }
+  }
+}
