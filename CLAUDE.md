@@ -22,7 +22,7 @@ There is no linter configured either — `tsconfig.json` strictness flags (`stri
 
 ## Architecture
 
-**The app is almost entirely frontend/WebView-side; the Rust backend is still the unmodified Tauri scaffold.** `src-tauri/src/lib.rs` exposes exactly one command, the default `greet(name) -> String`, which nothing in the frontend calls. `src-tauri/capabilities/default.json` grants only `core:default` and `opener:default` — no filesystem, HTTP, or shell permissions. All networking (playlist fetch) uses the WebView's native `fetch` API, not a Tauri command. Don't assume backend logic exists in Rust for a feature until you've checked — it almost certainly lives in `src/` instead.
+**The app is almost entirely frontend/WebView-side; the Rust backend is just the Tauri scaffold plus plugins.** `src-tauri/src/lib.rs` registers `tauri-plugin-opener` and `tauri-plugin-http` and exposes exactly one custom command, the default `greet(name) -> String`, which nothing in the frontend calls. `src-tauri/capabilities/default.json` grants `core:default`, `opener:default`, and `http:default` scoped to `http://*:*` and `https://*:*` — no filesystem or shell permissions. Playlist fetching uses the WebView's native `fetch`, but all HLS traffic (manifest + segments) goes through `TauriFetchLoader` (`src/features/player/services/hlsTauriLoader.ts`), which uses `@tauri-apps/plugin-http` to bypass CORS and sends a shared User-Agent to avoid anti-bot blocking. Don't assume backend logic exists in Rust for a feature until you've checked — it almost certainly lives in `src/` instead.
 
 **No router, no multi-store.** `src/App.tsx` is a two-screen state machine gated on Zustand hydration: `WelcomeScreen` (no profile yet) vs. `MainScreen` (profile exists) — there is no URL-based routing. `src/store.ts` is a single flat Zustand store (`useAppStore`) holding both state and actions together (no per-feature slices, no `combine`).
 
@@ -32,8 +32,8 @@ There is no linter configured either — `tsconfig.json` strictness flags (`stri
 
 **Feature folders** (`src/features/`) loosely follow a `components/` (UI) / `parser/` (parsing) / `services/` (network) split per feature, though it's not applied uniformly — check what actually exists in a feature before assuming a subfolder is there:
 
-- `channels/` — category sidebar + channel list UI, shared constants (`ALL_CHANNELS_CATEGORY`)
-- `player/` — `VideoPlayer.tsx`, a `<video>` element backed by **hls.js** (MSE-based HLS playback) for engines without native `.m3u8` support (including Windows' WebView2, which is what this Tauri app runs on); it falls back to setting `video.src` directly when `canPlayType('application/vnd.apple.mpegurl')` reports native support (Safari/WebKit). The `Hls` instance is created/destroyed per channel-URL change and on unmount; fatal network/media errors are recovered per hls.js's own recommended pattern, other fatal errors tear the instance down and report an offline status.
+- `channels/` — category sidebar + channel list UI, shared constants (`ALL_CHANNELS_CATEGORY`), `hooks/useChannelLogo.ts`
+- `player/` — `components/VideoPlayer.tsx` (a `<video>` element backed by **hls.js**) and `services/hlsTauriLoader.ts` (custom hls.js loader over the Tauri HTTP plugin). hls.js is preferred whenever MSE is available, even if `canPlayType('application/vnd.apple.mpegurl')` claims native HLS: recent WebView2 builds report native support, but that path uses the WebView's own network stack (blocked by CORS on most IPTV hosts) and bypasses `TauriFetchLoader`, so playback hangs on "connecting". Native `video.src` is only used when hls.js is unsupported. The `Hls` instance is created/destroyed per channel-URL change and on unmount; fatal network/media errors are retried per hls.js's recommended pattern (status shows `offline` immediately and returns to `live` if recovery works), other fatal errors tear the instance down.
 - `playlists/` — the core IPTV logic: `parser/parseM3u.ts` (hand-rolled `#EXTINF` line parser, no external M3U library) and `services/fetchPlaylist.ts` (fetch + validation + English-language user-facing error messages). Domain types (`Channel`, `Profile`, `Playlist`) live in `playlists/types.ts`.
 - `profiles/` — profile creation form
 
@@ -45,7 +45,7 @@ There is no linter configured either — `tsconfig.json` strictness flags (`stri
 - TypeScript/React: 2-space indentation; Rust in `src-tauri/src/`: `rustfmt` defaults (4 spaces)
 - Keep UI in `components/`, parsing in `parser/`, network access in `services/`
 - Do not hardcode IPTV sources, secrets, or local-only paths; keep playlist URLs validated in the playlist service layer (`fetchPlaylist.ts` already validates http/https and content shape — extend there, don't bypass it)
-- Review changes to `src-tauri/capabilities/` and `tauri.conf.json` carefully — they affect desktop permissions (currently minimal: `core:default` + `opener:default`, and `security.csp` is `null`)
+- Review changes to `src-tauri/capabilities/` and `tauri.conf.json` carefully — they affect desktop permissions (currently `core:default`, `opener:default`, and `http:default` allowing any http/https URL; `security.csp` is `null`).
 - Commit convention: Conventional Commits (`feat:`, `fix:`, etc.)
 
 ## Config notes
