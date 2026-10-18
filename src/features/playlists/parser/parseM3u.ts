@@ -36,6 +36,8 @@ export function parseM3u(content: string): Channel[] {
     .filter(Boolean);
 
   const channels: Channel[] = [];
+  const idCounts = new Map<string, number>();
+  const usedIds = new Set<string>();
 
   for (let i = 0; i < lines.length; i++) {
     const currentLine = lines[i];
@@ -50,12 +52,24 @@ export function parseM3u(content: string): Channel[] {
       continue;
     }
 
+    // Playlists often repeat the same entry; suffix repeats so ids stay
+    // unique (they are used as React keys and for selection).
+    const baseId = createChannelId({
+      name: getChannelName(currentLine),
+      url: nextLine,
+      tvgId: getAttribute(currentLine, "tvg-id"),
+    });
+    let id = baseId;
+    let suffix = idCounts.get(baseId) ?? 1;
+    while (usedIds.has(id)) {
+      suffix += 1;
+      id = `${baseId}-${suffix}`;
+    }
+    idCounts.set(baseId, suffix);
+    usedIds.add(id);
+
     channels.push({
-      id: createChannelId({
-        name: getChannelName(currentLine),
-        url: nextLine,
-        tvgId: getAttribute(currentLine, "tvg-id"),
-      }),
+      id,
       name: getChannelName(currentLine),
       url: nextLine,
       logo: getAttribute(currentLine, "tvg-logo"),
