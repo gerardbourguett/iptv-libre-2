@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "./store";
 import { CreateProfileForm } from "./features/profiles/components/CreateProfileForm";
 import { CategoryTabs } from "./features/channels/components/CategoryTabs";
@@ -6,6 +6,8 @@ import { ChannelList } from "./features/channels/components/ChannelList";
 import { ALL_CHANNELS_CATEGORY } from "./features/channels/constants";
 import { VideoPlayer } from "./features/player/components/VideoPlayer";
 import { StatusBadge, type ChannelStatus } from "./features/channels/components/ChannelCard";
+
+const NOTICE_AUTO_DISMISS_MS = 4000;
 
 function BrandMark() {
   return (
@@ -50,7 +52,7 @@ function StatusBanner({
     <div
       role={tone === "error" ? "alert" : "status"}
       aria-live={tone === "error" ? "assertive" : "polite"}
-      className={["mx-4 mt-3 flex items-start justify-between gap-3 rounded-xl border px-4 py-3 text-sm", tones[tone]].join(" ")}
+      className={["flex items-start justify-between gap-3 rounded-xl border px-4 py-3 text-sm shadow-lg backdrop-blur", tones[tone]].join(" ")}
     >
       <p className="font-medium">{message}</p>
       <button
@@ -122,7 +124,6 @@ function MainScreen() {
   const isLoading = useAppStore((s) => s.isLoading);
   const error = useAppStore((s) => s.error);
   const notice = useAppStore((s) => s.notice);
-  const lastLoadedAt = useAppStore((s) => s.lastLoadedAt);
   const clearError = useAppStore((s) => s.clearError);
   const clearNotice = useAppStore((s) => s.clearNotice);
   const setSelectedCategory = useAppStore((s) => s.setSelectedCategory);
@@ -152,6 +153,14 @@ function MainScreen() {
       ? channels
       : channels.filter((c) => (c.groupTitle || "No category") === selectedCategory);
   }, [channels, selectedCategory]);
+
+  // Notices are transient confirmations: auto-dismiss after a few seconds.
+  // Errors stay until the user closes them.
+  useEffect(() => {
+    if (!notice) return undefined;
+    const timeout = window.setTimeout(clearNotice, NOTICE_AUTO_DISMISS_MS);
+    return () => window.clearTimeout(timeout);
+  }, [notice, clearNotice]);
 
   const headerStatus: ChannelStatus | "syncing" = isLoading ? "syncing" : playerStatus;
 
@@ -200,11 +209,19 @@ function MainScreen() {
         </div>
       </header>
 
-      {error && (
-        <StatusBanner tone="error" message={error} onClose={clearError} />
-      )}
-      {notice && (
-        <StatusBanner tone="notice" message={notice} onClose={clearNotice} />
+      {(error || notice) && (
+        <div className="pointer-events-none fixed right-4 top-16 z-50 flex w-full max-w-sm flex-col gap-2">
+          {error && (
+            <div className="pointer-events-auto">
+              <StatusBanner tone="error" message={error} onClose={clearError} />
+            </div>
+          )}
+          {notice && (
+            <div className="pointer-events-auto">
+              <StatusBanner tone="notice" message={notice} onClose={clearNotice} />
+            </div>
+          )}
+        </div>
       )}
 
       <CategoryTabs
@@ -213,8 +230,8 @@ function MainScreen() {
         onSelectCategory={setSelectedCategory}
       />
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 p-4 pt-3 md:flex-row">
-        <aside className="h-64 min-h-0 flex-shrink-0 md:h-auto md:w-80">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 p-2 md:flex-row">
+        <aside className="h-64 min-h-0 flex-shrink-0 md:h-auto md:w-72">
           <ChannelList
             channels={visibleChannels}
             totalChannels={channels.length}
@@ -230,10 +247,6 @@ function MainScreen() {
           <VideoPlayer
             url={selectedChannel?.url}
             channelName={selectedChannel?.name}
-            channelGroup={selectedChannel?.groupTitle}
-            channelId={selectedChannel?.tvgId || selectedChannel?.id}
-            profileName={profile?.name}
-            lastLoadedAt={lastLoadedAt}
             onStatusChange={setPlayerStatus}
           />
         </section>

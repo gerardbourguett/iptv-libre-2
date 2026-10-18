@@ -6,10 +6,6 @@ import { TauriFetchLoader } from "../services/hlsTauriLoader";
 type VideoPlayerProps = {
   url?: string;
   channelName?: string;
-  channelGroup?: string;
-  channelId?: string;
-  profileName?: string;
-  lastLoadedAt?: string | null;
   onStatusChange?: (status: ChannelStatus) => void;
 };
 
@@ -53,10 +49,6 @@ const HEALTHY_PLAYBACK_RESET_MS = 30_000;
 function VideoPlayerComponent({
   url,
   channelName,
-  channelGroup,
-  channelId,
-  profileName,
-  lastLoadedAt,
   onStatusChange,
 }: VideoPlayerProps) {
   const [status, setStatus] = useState<ChannelStatus>("idle");
@@ -126,7 +118,11 @@ function VideoPlayerComponent({
       video.removeEventListener("error", handleError);
     };
 
-    if (NATIVE_HLS_SUPPORTED) {
+    // Prefer hls.js whenever MSE is available: recent Chromium/WebView2
+    // builds report native HLS via canPlayType, but the native path loads
+    // through the WebView's own network stack (blocked by CORS on most IPTV
+    // hosts) and bypasses TauriFetchLoader, so it hangs on "connecting".
+    if (NATIVE_HLS_SUPPORTED && !HLS_JS_SUPPORTED) {
       video.src = url;
       video.load();
       video.play().catch(() => {
@@ -199,7 +195,11 @@ function VideoPlayerComponent({
             reportStatus("offline");
             break;
           }
-          reportStatus("connecting");
+          // Reflect the failure immediately; the status returns to "live"
+          // via the video element's playing/canplay events if the recovery
+          // attempt actually works, so a dead stream no longer sits on
+          // "connecting" through the retries.
+          reportStatus("offline");
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
             hls.startLoad();
           } else {
@@ -259,12 +259,8 @@ function VideoPlayerComponent({
           </div>
           <div className="text-center">
             <p className="text-lg font-semibold text-text">Nothing playing yet</p>
-            <p className="mt-1 text-sm text-text-secondary">Pick a channel below to start watching.</p>
+            <p className="mt-1 text-sm text-text-secondary">Pick a channel to start watching.</p>
           </div>
-        </div>
-        <div className="player-frame__footer">
-          <p className="text-sm font-medium text-text-muted">No channel selected</p>
-          <StatusBadge status="idle" />
         </div>
       </div>
     );
@@ -291,14 +287,11 @@ function VideoPlayerComponent({
           </div>
           <div className="text-center">
             <p className="text-lg font-semibold text-text">Playback unsupported</p>
+            {channelName && <p className="mt-1 truncate text-sm font-medium text-text-muted">{channelName}</p>}
             <p className="mt-1 max-w-xs text-sm text-text-secondary">
               This runtime has no native or MSE-based HLS support — this stream can&apos;t be played here.
             </p>
           </div>
-        </div>
-        <div className="player-frame__footer">
-          <p className="min-w-0 truncate text-sm font-semibold text-text">{channelName}</p>
-          <StatusBadge status="offline" />
         </div>
       </div>
     );
@@ -312,39 +305,10 @@ function VideoPlayerComponent({
           controls
           className="h-full w-full bg-black object-contain"
         />
-        <div className="player-live-chip" aria-hidden="true">
+        <div className="player-live-chip">
+          <p className="min-w-0 truncate text-sm font-semibold text-text">{channelName}</p>
           <StatusBadge status={status} />
         </div>
-      </div>
-
-      <div className="player-frame__footer">
-        <p className="min-w-0 truncate text-sm font-semibold text-text">{channelName}</p>
-        <StatusBadge status={status} />
-      </div>
-
-      <div className="player-meta">
-        <div className="player-meta__item">
-          <p className="player-meta__label">Channel</p>
-          <p className="player-meta__value">{channelName}</p>
-        </div>
-        <div className="player-meta__item">
-          <p className="player-meta__label">Category</p>
-          <p className="player-meta__value">{channelGroup || "No category"}</p>
-        </div>
-        <div className="player-meta__item">
-          <p className="player-meta__label">Source</p>
-          <p className="player-meta__value">{profileName || "Local profile"}</p>
-        </div>
-        <div className="player-meta__item">
-          <p className="player-meta__label">Identifier</p>
-          <p className="player-meta__value player-meta__value--muted">{channelId || "no-id"}</p>
-        </div>
-        {lastLoadedAt && (
-          <div className="player-meta__item">
-            <p className="player-meta__label">Last synced</p>
-            <p className="player-meta__value player-meta__value--muted">{new Date(lastLoadedAt).toLocaleString()}</p>
-          </div>
-        )}
       </div>
     </div>
   );
