@@ -1,5 +1,6 @@
 import { useLayoutEffect, type RefObject } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useAppStore } from "../../../store";
 import { mpvPlayer } from "../services/mpvPlayer";
 
 const HOLE_VARS = ["--hole-x", "--hole-y", "--hole-w", "--hole-h"] as const;
@@ -22,6 +23,8 @@ export function computeRegionRatio(element: HTMLElement) {
 // with the player element. Margins are ratios of the window inner size in CSS
 // pixels, so they do not depend on the display scale factor.
 export function useVideoRegionSync(target: RefObject<HTMLElement | null>, enabled: boolean) {
+  const fullscreen = useAppStore((s) => s.isPlayerFullscreen);
+
   useLayoutEffect(() => {
     const element = target.current;
     if (!enabled || !element) return undefined;
@@ -32,10 +35,15 @@ export function useVideoRegionSync(target: RefObject<HTMLElement | null>, enable
     let disposed = false;
 
     const measure = () => {
-      const rect = element.getBoundingClientRect();
       const width = window.innerWidth;
       const height = window.innerHeight;
       if (width === 0 || height === 0) return;
+
+      // Fullscreen: the video owns the whole window, so margins are exactly 0
+      // regardless of what the (hidden-chrome) layout measures.
+      const rect = fullscreen
+        ? { left: 0, top: 0, right: width, bottom: height, width, height }
+        : element.getBoundingClientRect();
 
       root.style.setProperty("--hole-x", `${rect.left}px`);
       root.style.setProperty("--hole-y", `${rect.top}px`);
@@ -89,5 +97,5 @@ export function useVideoRegionSync(target: RefObject<HTMLElement | null>, enable
       unlisteners.forEach((unlisten) => unlisten());
       HOLE_VARS.forEach((name) => root.style.removeProperty(name));
     };
-  }, [target, enabled]);
+  }, [target, enabled, fullscreen]);
 }

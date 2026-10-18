@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { StatusBadge, type ChannelStatus } from "../../channels/components/ChannelCard";
+import { PlayerControls } from "./PlayerControls";
 import { useMpvPlayback } from "../hooks/useMpvPlayback";
 import { useVideoRegionSync } from "../hooks/useVideoRegionSync";
 
@@ -113,6 +114,7 @@ function VideoPlayerComponent({ url, channelName, onStatusChange, onSurfaceChang
           <p className="min-w-0 truncate text-sm font-semibold text-text">{channelName}</p>
           <StatusBadge status={status} />
         </div>
+        {surfaceActive && <PlayerControls />}
       </div>
     </div>
   );

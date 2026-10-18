@@ -3,6 +3,7 @@ import {
   init,
   listenEvents,
   observeProperties,
+  setProperty,
   setVideoMarginRatio,
   type MpvConfig,
   type MpvObservableProperty,
@@ -28,9 +29,17 @@ export type MpvSignal =
 
 type MpvSignalListener = (signal: MpvSignal) => void;
 
+// User-facing playback controls, mirrored from mpv's own properties. Kept apart
+// from MpvSignal so the status reducer never sees them: a user pause must not
+// change the channel status.
+export type MpvControls = { paused: boolean; muted: boolean; volume: number };
+
 const OBSERVED_PROPERTIES = [
   ["core-idle", "flag"],
   ["paused-for-cache", "flag"],
+  ["pause", "flag"],
+  ["mute", "flag"],
+  ["volume", "double"],
 ] as const satisfies MpvObservableProperty[];
 
 // The ffmpeg HLS demuxer does not reliably inherit these from the stream
@@ -66,6 +75,8 @@ type ServiceState = {
   ready: Promise<void> | null;
   queue: Promise<void>;
   listeners: Set<MpvSignalListener>;
+  controls: MpvControls;
+  controlListeners: Set<() => void>;
   unlisten: Array<() => void>;
 };
 
@@ -77,6 +88,8 @@ const state: ServiceState = (import.meta.hot?.data.mpvService as ServiceState | 
   ready: null,
   queue: Promise.resolve(),
   listeners: new Set(),
+  controls: { paused: false, muted: false, volume: 100 },
+  controlListeners: new Set(),
   unlisten: [],
 };
 
@@ -85,6 +98,7 @@ if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     detachListeners();
     state.listeners.clear();
+    state.controlListeners.clear();
     state.ready = null;
     const queued = state.queue;
     state.queue = queued.then(() => command("stop")).then(
@@ -96,6 +110,14 @@ if (import.meta.hot) {
 
 function emit(signal: MpvSignal) {
   state.listeners.forEach((listener) => listener(signal));
+}
+
+function updateControls(patch: Partial<MpvControls>) {
+  const prev = state.controls;
+  const next = { ...prev, ...patch };
+  if (next.paused === prev.paused && next.muted === prev.muted && next.volume === prev.volume) return;
+  state.controls = next;
+  state.controlListeners.forEach((listener) => listener());
 }
 
 function detachListeners() {
@@ -133,8 +155,21 @@ async function registerListeners(): Promise<void> {
   );
   state.unlisten.push(
     await observeProperties(OBSERVED_PROPERTIES, (event) => {
-      if (typeof event.data !== "boolean") return;
-      emit({ type: event.name, value: event.data });
+      switch (event.name) {
+        case "core-idle":
+        case "paused-for-cache":
+          if (typeof event.data === "boolean") emit({ type: event.name, value: event.data });
+          break;
+        case "pause":
+          if (typeof event.data === "boolean") updateControls({ paused: event.data });
+          break;
+        case "mute":
+          if (typeof event.data === "boolean") updateControls({ muted: event.data });
+          break;
+        case "volume":
+          if (typeof event.data === "number") updateControls({ volume: event.data });
+          break;
+      }
     }),
   );
 }
@@ -190,7 +225,35 @@ export const mpvPlayer = {
 
   /** Resolves false when the loadfile command was rejected. */
   load(url: string): Promise<boolean> {
-    return enqueue(() => command("loadfile", [url, "replace"]));
+    // `pause` outlives a file: clear it so a new channel never starts frozen.
+    return enqueue(async () => {
+      await setProperty("pause", false);
+      await command("loadfile", [url, "replace"]);
+    });
+  },
+
+  // External-store API for the controls UI (useSyncExternalStore).
+  subscribeControls(listener: () => void): () => void {
+    state.controlListeners.add(listener);
+    return () => {
+      state.controlListeners.delete(listener);
+    };
+  },
+
+  getControls(): MpvControls {
+    return state.controls;
+  },
+
+  setPaused(paused: boolean): Promise<boolean> {
+    return enqueue(() => setProperty("pause", paused));
+  },
+
+  setMuted(muted: boolean): Promise<boolean> {
+    return enqueue(() => setProperty("mute", muted));
+  },
+
+  setVolume(volume: number): Promise<boolean> {
+    return enqueue(() => setProperty("volume", Math.min(100, Math.max(0, Math.round(volume)))));
   },
 
   stop(): Promise<boolean> {

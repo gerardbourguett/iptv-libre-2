@@ -5,6 +5,7 @@ import { CategoryTabs } from "./features/channels/components/CategoryTabs";
 import { ChannelList } from "./features/channels/components/ChannelList";
 import { ALL_CHANNELS_CATEGORY } from "./features/channels/constants";
 import { VideoPlayer } from "./features/player/components/VideoPlayer";
+import { usePlayerFullscreen } from "./features/player/hooks/usePlayerFullscreen";
 import { StatusBadge, type ChannelStatus } from "./features/channels/components/ChannelCard";
 
 const NOTICE_AUTO_DISMISS_MS = 4000;
@@ -131,6 +132,9 @@ function MainScreen() {
   const setSearchQuery = useAppStore((s) => s.setSearchQuery);
   const resetProfile = useAppStore((s) => s.resetProfile);
   const refreshPlaylist = useAppStore((s) => s.refreshPlaylist);
+  const isFullscreen = useAppStore((s) => s.isPlayerFullscreen);
+
+  usePlayerFullscreen();
 
   // Real connection status of the currently playing channel, reported up by
   // the mpv playback hook. This is transient UI state, not persisted.
@@ -168,9 +172,14 @@ function MainScreen() {
 
   return (
     <main
-      className={["app-ground relative flex h-screen flex-col", videoSurface ? "app-ground--video" : ""].join(" ")}
+      className={[
+        "app-ground relative flex h-screen flex-col",
+        videoSurface ? "app-ground--video" : "",
+        isFullscreen ? "app-ground--fullscreen" : "",
+      ].join(" ")}
     >
-      <header className="app-topbar">
+      {/* Chrome is hidden (not unmounted) in fullscreen so list scroll/search survive. */}
+      <header className="app-topbar" hidden={isFullscreen}>
         <BrandMark />
 
         <div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-1.5">
@@ -228,14 +237,21 @@ function MainScreen() {
         </div>
       )}
 
-      <CategoryTabs
-        categories={categories}
-        selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
-      />
+      <div hidden={isFullscreen}>
+        <CategoryTabs
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+        />
+      </div>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 p-2 md:flex-row">
-        <aside className="h-64 min-h-0 flex-shrink-0 md:h-auto md:w-72">
+      <div
+        className={[
+          "flex min-h-0 min-w-0 flex-1 flex-col md:flex-row",
+          isFullscreen ? "" : "gap-2 p-2",
+        ].join(" ")}
+      >
+        <aside className="h-64 min-h-0 flex-shrink-0 md:h-auto md:w-72" hidden={isFullscreen}>
           <ChannelList
             channels={visibleChannels}
             totalChannels={channels.length}
