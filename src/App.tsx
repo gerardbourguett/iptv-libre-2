@@ -52,7 +52,7 @@ function StatusBanner({
     <div
       role={tone === "error" ? "alert" : "status"}
       aria-live={tone === "error" ? "assertive" : "polite"}
-      className={["flex items-start justify-between gap-3 rounded-xl border px-4 py-3 text-sm shadow-lg backdrop-blur", tones[tone]].join(" ")}
+      className={["flex items-start justify-between gap-3 rounded-xl border px-4 py-3 text-sm shadow-lg backdrop-blur status-banner", tones[tone]].join(" ")}
     >
       <p className="font-medium">{message}</p>
       <button
@@ -133,9 +133,11 @@ function MainScreen() {
   const refreshPlaylist = useAppStore((s) => s.refreshPlaylist);
 
   // Real connection status of the currently playing channel, reported up by
-  // the video player's own <video> element events. This is transient UI
-  // state, not persisted.
+  // the mpv playback hook. This is transient UI state, not persisted.
   const [playerStatus, setPlayerStatus] = useState<ChannelStatus>("idle");
+  // True while the page is see-through over the player area (mpv paints
+  // underneath the transparent WebView).
+  const [videoSurface, setVideoSurface] = useState(false);
 
   const categories = useMemo(() => {
     const uniqueCategories = new Set(
@@ -165,7 +167,9 @@ function MainScreen() {
   const headerStatus: ChannelStatus | "syncing" = isLoading ? "syncing" : playerStatus;
 
   return (
-    <main className="app-ground relative flex h-screen flex-col">
+    <main
+      className={["app-ground relative flex h-screen flex-col", videoSurface ? "app-ground--video" : ""].join(" ")}
+    >
       <header className="app-topbar">
         <BrandMark />
 
@@ -248,6 +252,7 @@ function MainScreen() {
             url={selectedChannel?.url}
             channelName={selectedChannel?.name}
             onStatusChange={setPlayerStatus}
+            onSurfaceChange={setVideoSurface}
           />
         </section>
       </div>

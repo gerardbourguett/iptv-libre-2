@@ -1,7 +1,7 @@
-// Shared across every request routed through @tauri-apps/plugin-http (the
-// HLS loader in features/player and the channel-logo fetcher in
-// features/channels) — both hit the same class of gray-market IPTV/logo
-// hosts, and both need the same fix for the same reason.
+// Shared by every network client that talks to gray-market IPTV/logo hosts:
+// libmpv (stream playback in features/player, set as its `user-agent`) and the
+// channel-logo fetcher in features/channels (@tauri-apps/plugin-http). Both
+// need the same fix for the same reason.
 //
 // Confirmed by reading tauri-plugin-http 2.5.9's Rust source
 // (commands.rs::fetch): when the caller doesn't set a User-Agent header,
