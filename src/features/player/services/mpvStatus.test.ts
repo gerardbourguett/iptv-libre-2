@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  HEALTHY_PLAYBACK_RESET_MS,
   INITIAL_MPV_STATUS_STATE,
   MAX_RETRY_ATTEMPTS,
-  RETRY_BACKOFF_MS,
   reduceMpvStatus,
   type MpvStatusAction,
   type MpvStatusEffect,
@@ -115,6 +113,12 @@ describe("reduceMpvStatus", () => {
     it("paused-for-cache before start-file is ignored", () => {
       unchanged(loaded(), { type: "paused-for-cache", value: true });
     });
+
+    it("paused-for-cache is ignored when live without start-file for this generation", () => {
+      // Crafted state: only the startSeen gate can reject this one.
+      const crafted: MpvStatusState = { status: "live", attempts: 0, generation: 1, startSeen: false, entryId: null };
+      unchanged(crafted, { type: "paused-for-cache", value: true });
+    });
   });
 
   describe("going live", () => {
@@ -167,7 +171,8 @@ describe("reduceMpvStatus", () => {
   });
 
   describe("end-file", () => {
-    it.each(["stop", "quit", "redirect"])("reason '%s' is ignored", (reason) => {
+    // "" and "unknown" pin that only "error" and "eof" count as failures.
+    it.each(["stop", "quit", "redirect", "", "unknown"])("reason '%s' is ignored", (reason) => {
       unchanged(live(), { type: "end-file", reason });
       unchanged(started(), { type: "end-file", reason });
     });
@@ -182,7 +187,7 @@ describe("reduceMpvStatus", () => {
     });
 
     it.each(["error", "eof"])("reason '%s' is a failure that schedules a 1s retry", (reason) => {
-      const before = live();
+      const before = live(3);
       const { state, effects } = step(before, { type: "end-file", reason });
       expect(state).toMatchObject({ status: "connecting", attempts: 1, startSeen: false, entryId: null });
       expect(effects).toEqual([
@@ -252,9 +257,7 @@ describe("reduceMpvStatus", () => {
 
   describe("retry and backoff", () => {
     it("uses 1s, 2s and 4s backoff and stays connecting in between", () => {
-      expect(HEALTHY_PLAYBACK_RESET_MS).toBe(30_000);
-      expect(RETRY_BACKOFF_MS).toEqual([1_000, 2_000, 4_000]);
-
+      // The reducer's `?? last element` backoff fallback is unreachable: attempts < MAX (3) always indexes 0..2.
       let state = started();
       const delays: number[] = [];
       for (let i = 0; i < MAX_RETRY_ATTEMPTS; i++) {
@@ -270,20 +273,17 @@ describe("reduceMpvStatus", () => {
     });
 
     it("retry-fire bumps the generation, emits load and clears start-file", () => {
-      const failed = failOnce(started());
-      const { state, effects } = step(failed.state, { type: "retry-fire", generation: failed.state.generation });
-      expect(state).toMatchObject({ status: "connecting", attempts: 1, startSeen: false, entryId: null });
-      expect(state.generation).toBe(failed.state.generation + 1);
+      // Hand-built state with start-file data that retry-fire must reset.
+      const waiting: MpvStatusState = { status: "connecting", attempts: 1, generation: 4, startSeen: true, entryId: 5 };
+      const { state, effects } = step(waiting, { type: "retry-fire", generation: 4 });
+      expect(state).toEqual({ status: "connecting", attempts: 1, generation: 5, startSeen: false, entryId: null });
       expect(effects).toEqual([{ kind: "load" }]);
     });
 
     it("the 4th failure goes offline and stops playback", () => {
-      let state = started();
-      for (let i = 0; i < MAX_RETRY_ATTEMPTS; i++) {
-        const failed = step(state, END_ERROR);
-        state = run(failed.state, { type: "retry-fire", generation: failed.state.generation }, { type: "start-file" }).state;
-      }
-      const { state: final, effects } = step(state, END_ERROR);
+      // Exhausted budget with an entry id present: offline must clear start-file data.
+      const exhausted: MpvStatusState = { ...live(3), attempts: MAX_RETRY_ATTEMPTS };
+      const { state: final, effects } = step(exhausted, END_ERROR);
       expect(final).toMatchObject({ status: "offline", attempts: MAX_RETRY_ATTEMPTS, startSeen: false, entryId: null });
       expect(effects).toEqual([{ kind: "clear-healthy-timer" }, { kind: "clear-retry-timer" }, { kind: "stop" }]);
     });
