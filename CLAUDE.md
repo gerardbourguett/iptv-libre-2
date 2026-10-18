@@ -11,6 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Package manager is **pnpm** (`pnpm-lock.yaml` is the tracked lockfile — don't use npm/yarn).
 
 - `pnpm install` — install dependencies
+- `pnpm setup:mpv` — download and SHA-256-verify the pinned libmpv DLLs into `src-tauri/lib/` (required once after a fresh clone; the DLLs are gitignored)
 - `pnpm dev` — run the Vite frontend only (browser, no desktop shell)
 - `pnpm tauri dev` — run the full desktop app (Rust shell + frontend); this is how you actually exercise Tauri commands/capabilities
 - `pnpm build` — type-check (`tsc`, `noEmit`) then build the frontend bundle to `dist/`
