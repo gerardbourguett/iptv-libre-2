@@ -16,6 +16,8 @@ type AppState = {
   error: string | null;
   notice: string | null;
   lastLoadedAt: string | null;
+  // Transient (not persisted): the player window is fullscreen.
+  isPlayerFullscreen: boolean;
 };
 
 type AppActions = {
@@ -27,6 +29,7 @@ type AppActions = {
   setSelectedCategory: (category: string) => void;
   setSelectedChannel: (channel: Channel | null) => void;
   setSearchQuery: (query: string) => void;
+  setPlayerFullscreen: (value: boolean) => void;
   refreshPlaylist: () => Promise<void>;
 };
 
@@ -43,6 +46,7 @@ export const useAppStore = create<AppState & AppActions>()(
       error: null,
       notice: null,
       lastLoadedAt: null,
+      isPlayerFullscreen: false,
 
       createProfile: async (data) => {
         set({ isLoading: true, error: null, notice: null });
@@ -96,6 +100,7 @@ export const useAppStore = create<AppState & AppActions>()(
       setSelectedCategory: (category) => set({ selectedCategory: category }),
       setSelectedChannel: (channel) => set({ selectedChannel: channel }),
       setSearchQuery: (searchQuery) => set({ searchQuery }),
+      setPlayerFullscreen: (value) => set({ isPlayerFullscreen: value }),
 
       refreshPlaylist: async () => {
         const { profile, selectedChannel } = get();

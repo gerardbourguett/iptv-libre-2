@@ -6,10 +6,10 @@ OpenTV (`libre-iptv-2`) is a Tauri v2 IPTV desktop app with a React 19, TypeScri
 - `src/` contains the WebView application, the app shell (`App.tsx`), and the single Zustand store (`store.ts`).
 - `src/features/` groups domains: `channels/`, `player/`, `playlists/`, and `profiles/`. Keep UI in `components/`, parsing in `parser/`, and network access in `services/` where those folders exist.
 - `src/features/playlists/` owns M3U parsing, playlist fetching, validation, and shared domain types.
-- `src-tauri/` is currently close to the default Rust scaffold. Do not assume a feature has Rust backend support without checking.
+- `src-tauri/` is the default Tauri scaffold plus plugins (`opener`, `http`, `libmpv`); it has no custom backend logic beyond the unused `greet` command. `src-tauri/lib/` holds gitignored libmpv DLLs fetched by `pnpm setup:mpv`; `src-tauri/licenses/` ships third-party notices. Do not assume a feature has Rust backend support without checking.
 - `public/` and `src/assets/` contain static assets. Never edit generated `dist/` or `src-tauri/target/` output.
 
-The app has no router: `App.tsx` switches between welcome and main screens after Zustand hydration. Persistent data uses `localStorage`; playlist networking uses WebView `fetch`. Playback uses `hls.js` with native HLS fallback.
+The app has no router: `App.tsx` switches between welcome and main screens after Zustand hydration. Persistent data uses `localStorage`; playlist networking uses WebView `fetch`. Playback is native: libmpv renders into the window beneath a transparent WebView (`src/features/player/`: `services/mpvPlayer.ts`, `services/mpvStatus.ts`, `hooks/`, `components/PlayerControls.tsx`). There is no `<video>` element and no hls.js. Anything drawn over the video must use a solid background (no `backdrop-filter`/alpha). See `CLAUDE.md` for the full architecture.
 
 ## Build, Test, and Development Commands
 Use **pnpm** exclusively because `pnpm-lock.yaml` is authoritative.

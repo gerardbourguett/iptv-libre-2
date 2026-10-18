@@ -675,6 +675,59 @@ html.mpv-surface .player-frame__screen {
   background: transparent;
 }
 
+/* Fullscreen: the player frame is edge to edge, no border. */
+.app-ground--fullscreen .player-frame {
+  border: 0;
+  box-shadow: none;
+}
+
+/* Transport controls: solid, because blur/alpha cannot blend with mpv pixels. */
+.player-controls {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #0a0a0e;
+  border-top: 1px solid var(--color-border);
+}
+
+/* Only keyboard focus keeps the bar up; a clicked button keeps pointer focus. */
+.player-controls--idle:not(:has(:focus-visible)) {
+  visibility: hidden;
+}
+
+.app-ground--fullscreen:has(.player-controls--idle) .player-frame__screen {
+  cursor: none;
+}
+
+.player-controls__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.player-controls__btn:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-accent);
+}
+
+.player-controls__volume {
+  width: 120px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
 html.mpv-surface .status-banner {
   background: color-mix(in srgb, var(--color-surface) 92%, black);
   backdrop-filter: none;
