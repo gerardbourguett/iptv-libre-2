@@ -6,6 +6,8 @@
   "permissions": [
     "core:default",
     "opener:default",
+    "libmpv:default",
+    "core:window:allow-set-fullscreen",
     {
       "identifier": "http:default",
       "allow": [{ "url": "http://*:*" }, { "url": "https://*:*" }]

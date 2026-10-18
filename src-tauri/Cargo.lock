@@ -2010,7 +2010,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e9ec52138abedcc58dc17a7c6c0c00a2bdb4f3427c7f63fa97fd0d859155caf"
 dependencies = [
  "gtk-sys",
- "libloading",
+ "libloading 0.7.4",
  "once_cell",
 ]
 
@@ -2040,6 +2040,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "libloading"
+version = "0.8.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7c4b02199fee7c5d21a5ae7d8cfa79a6ef5bb2fc834d6e9058e89c825efdc55"
+dependencies = [
+ "cfg-if",
+ "windows-link 0.2.1",
+]
+
+[[package]]
 name = "libre-iptv-2"
 version = "0.1.0"
 dependencies = [
@@ -2048,6 +2058,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-http",
+ "tauri-plugin-libmpv",
  "tauri-plugin-opener",
 ]
 
@@ -3872,6 +3883,27 @@ dependencies = [
  "tokio",
  "url",
  "urlpattern",
+]
+
+[[package]]
+name = "tauri-plugin-libmpv"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "447798aec64877a1e476c2ebc2360a8374740ccf32fdc31949e4942e3fef903e"
+dependencies = [
+ "base64 0.22.1",
+ "indexmap 2.14.0",
+ "libc",
+ "libloading 0.8.9",
+ "log",
+ "once_cell",
+ "raw-window-handle",
+ "scopeguard",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

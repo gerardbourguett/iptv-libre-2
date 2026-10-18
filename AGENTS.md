@@ -15,6 +15,7 @@ The app has no router: `App.tsx` switches between welcome and main screens after
 Use **pnpm** exclusively because `pnpm-lock.yaml` is authoritative.
 
 - `pnpm install` — install dependencies.
+- `pnpm setup:mpv` — download and SHA-256-verify the pinned libmpv DLLs into `src-tauri/lib/` (required once after a fresh clone; the DLLs are gitignored)
 - `pnpm dev` — run only the Vite frontend.
 - `pnpm tauri dev` — run the complete desktop app and exercise Tauri capabilities.
 - `pnpm build` — run strict TypeScript checks, then build the frontend.
