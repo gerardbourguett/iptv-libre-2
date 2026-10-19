@@ -16,8 +16,9 @@ Package manager is **pnpm** (`pnpm-lock.yaml` is the tracked lockfile — don't 
 - `pnpm tauri dev` — run the full desktop app (Rust shell + frontend); this is how you actually exercise Tauri commands/capabilities
 - `pnpm build` — type-check (`tsc`, `noEmit`) then build the frontend bundle to `dist/`
 - `pnpm tauri build` — produce a packaged desktop build
+- `pnpm test` — run the Vitest suite once (`vitest run`, Node environment, config in `vitest.config.ts`); `pnpm test:watch` runs it in watch mode
 
-There is no test runner configured in `package.json`. Do not claim test coverage exists; if you add tests, place frontend tests beside the module as `*.test.ts`/`*.test.tsx` and Rust unit tests in `src-tauri/src/` under `#[cfg(test)]` — but no runner is wired up yet, so a test command must be added first.
+Frontend tests live beside the module as `*.test.ts` (the runner only picks up `src/**/*.test.ts`, so `*.test.tsx` component tests need the config extended first). Only the pure mpv status reducer (`src/features/player/services/mpvStatus.test.ts`) is covered so far; everything else is untested. There are no Rust tests yet; if you add them, put them in `src-tauri/src/` under `#[cfg(test)]`.
 
 There is no linter configured either — `tsconfig.json` strictness flags (`strict`, `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`) are the only enforced checks, surfaced via `tsc` during `pnpm build`.
 

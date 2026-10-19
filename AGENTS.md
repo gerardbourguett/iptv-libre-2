@@ -21,12 +21,12 @@ Use **pnpm** exclusively because `pnpm-lock.yaml` is authoritative.
 - `pnpm build` — run strict TypeScript checks, then build the frontend.
 - `pnpm tauri build` — package the desktop application.
 
-No test runner or linter is configured. Do not claim test coverage or invent test commands. TypeScript compiler checks are the current automated validation.
+No linter is configured. Run `pnpm test` (Vitest) for unit tests; only the mpv status reducer is covered so far, so do not claim broader coverage. TypeScript compiler checks (`pnpm build`) remain the other automated validation.
 
 ## Coding Style & Naming Conventions
 Use 2-space indentation for TypeScript/React and `rustfmt` defaults for Rust. Name React component files in `PascalCase` (`VideoPlayer.tsx`); use `camelCase` for functions, variables, and Zustand actions; keep feature directories lowercase. Imports are relative because no path aliases exist.
 
-Place frontend tests beside their modules as `*.test.ts` or `*.test.tsx`; place Rust unit tests under `#[cfg(test)]`. Add and document a runner before introducing frontend test commands.
+Place frontend tests beside their modules as `*.test.ts` (the runner includes `src/**/*.test.ts`; extend `vitest.config.ts` before adding `*.test.tsx`). Import `describe`/`it`/`expect` explicitly from `vitest`. Place Rust unit tests under `#[cfg(test)]` (no Rust test setup exists yet).
 
 ## Configuration & Security
 Keep playlist URL and response validation in `src/features/playlists/services/fetchPlaylist.ts`; never hardcode IPTV sources, secrets, or machine-specific paths. Review `src-tauri/capabilities/` and `tauri.conf.json` carefully because they control desktop permissions. Preserve Vite port `1420`, which must match Tauri's `build.devUrl`. Tailwind tokens belong in `src/App.css` under `@theme`.
